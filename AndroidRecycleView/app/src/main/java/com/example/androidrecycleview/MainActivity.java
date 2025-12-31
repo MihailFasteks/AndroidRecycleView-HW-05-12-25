@@ -8,6 +8,8 @@ import android.widget.*;
 
 import com.bumptech.glide.Glide;
 
+import java.util.concurrent.ExecutionException;
+
 class Item {
     String URL;
     String name;
@@ -91,12 +93,17 @@ class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
     }
 }
 public class MainActivity extends AppCompatActivity {
+    private TextView total;
+    private Item[] myDataset;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        var myDataset = getDataSet();
+        myDataset = getDataSet();
+
         RecyclerView rv = findViewById(R.id.my_recycler_view);
+        total=findViewById(R.id.total);
+
 // якщо є впевненість, що зміни у контенті не змінять розмір
 // леяута, то можна виставити true - це збільшує продуктивність
         rv.setHasFixedSize(true);
@@ -110,8 +117,25 @@ public class MainActivity extends AppCompatActivity {
         a.setOnItemClickListener(position -> {
             var selectedText = myDataset[position].name;
             Toast.makeText(MainActivity.this, "Обрано: " + selectedText, Toast.LENGTH_SHORT).show();
+            updateTotal();
         });
         rv.setAdapter(a);
+        updateTotal();
+    }
+    private void updateTotal(){
+        double sum=0;
+        for(Item item: myDataset){
+            if(item.checked){
+                String priceStr = item.price.replaceAll("[^0-9.,]", "");
+                priceStr = priceStr.replace(",", ".");
+                try {
+                    sum+=Double.parseDouble(priceStr);
+                } catch(NumberFormatException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+        total.setText("Сумма "+Double.toString(sum)+" грн");
     }
     private Item[] getDataSet() {
         return new Item[] {
